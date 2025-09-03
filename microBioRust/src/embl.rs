@@ -1394,3 +1394,78 @@ impl Config {
     Ok(Config { filename })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    #[allow(unused_mut)]
+    #[allow(unused_variables)]
+    #[allow(dead_code)]
+    #[allow(unused_assignments)]
+    #[allow(unused_imports)]
+    fn test_read_file() {
+       let content = std::fs::read_to_string("example.embl").expect("error reading file");
+       assert!(content.contains("ID"));
+       assert!(content.len() > 0);
+       }
+    #[test]
+    #[allow(unused_mut)]
+    #[allow(unused_variables)]
+    #[allow(dead_code)]
+    #[allow(unused_assignments)]
+    #[allow(unused_imports)]
+    fn test_parse_embl() {
+       let file_embl = "example.embl";
+       let records = embl!(&file_embl);
+       assert!(records.len() > 0);
+       }
+    #[test]
+    #[allow(unused_mut)]
+    #[allow(unused_variables)]
+    #[allow(dead_code)]
+    #[allow(unused_assignments)]
+    #[allow(unused_imports)]
+    fn test_parse_source_attributes() {
+       let file_embl = "example.embl";
+       let records = embl!(&file_embl);
+       if let Some(record) = records.first() {
+          if let Some((key, val)) = record.source_map.source_attributes.first_key_value() {
+              assert_eq!(key, &"source_AM236082_1".to_string());
+              }
+          }
+       }
+    #[test]
+    #[allow(unused_mut)]
+    #[allow(unused_variables)]
+    #[allow(dead_code)]
+    #[allow(unused_assignments)]
+    #[allow(unused_imports)]
+    fn test_parse_cds_attributes() {
+       let file_embl = "example.embl";
+       let records = embl!(&file_embl);
+       if let Some(record) = records.first() {
+          if let Some((locus_tag, vals)) = record.cds.attributes.first_key_value() {
+                assert_eq!(locus_tag, &"pRL80001".to_string());
+                assert_eq!(record.cds.get_gene(&locus_tag).as_deref(), Some(&"repAp8".to_string()));
+                }
+          }
+       }
+    #[test]
+    #[allow(unused_mut)]
+    #[allow(unused_variables)]
+    #[allow(dead_code)]
+    #[allow(unused_assignments)]
+    #[allow(unused_imports)]
+    fn test_parse_sequence_attributes() {
+        let file_embl = "example.embl";
+        let records = embl!(&file_embl);
+        if let Some(record) = records.first() {
+           if let Some((key, vals)) = record.cds.attributes.first_key_value() {
+               assert_eq!(key, &"pRL80001".to_string());
+               assert_eq!(record.seq_features.get_sequence_faa(&key), Some(&"VENPAQLQKAIHKLIAAHARDLSGALHEHRVKLYPPEARKTLRSFSSIEAAKLIGVNDGYLRHLSLEGKGPQPEIGNNNRRSYSVETIQALREYLDENGKGDRRYSPRRSGREHLQVITAVNFKGGSGKTTTAAHLAQYLALNGYRVLAIDLDPQASMSALHGFQPEFDVGDNETLYGAVRYDEERRPLKDIIKKTYFANLDLVPGNLELMEFEHDTAKVLGSNDRKNIFFTRMDDAIASVADDYDVVVVDCPPQLGFLTISALCAATAVLVTVHPQMLDVMSMCQFLLMTSELLSVVADAGGSMNYDWMRYLVTRYEPGDGPQNQMVSFMRTMFGDHVLNHPMLKSTAISDAGITKQTLYEVSRDQFTRATYDRAMESLDNVNSEIEQLIQSSWGRK".to_string()));
+               }
+           }
+        }
+}
+

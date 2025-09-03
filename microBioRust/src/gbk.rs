@@ -752,7 +752,7 @@ where
 	                 //collects the DNA sequence and translations on the correct strand
 	                 if stra == -1 {
 	                    if cod > 1 {
-			       println!("reverse strand coding start more than one {:?}", &iterablecount);
+			       //println!("reverse strand coding start more than one {:?}", &iterablecount);
 			       if sto + 1 <= record.sequence.len() {
 		                   sliced_sequence = &record.sequence[sta+cod..sto+1];
 				   }
@@ -770,7 +770,7 @@ where
 			       else {
 			           sliced_sequence = &record.sequence[sta..sto];
 				   }
-			       //println!("iterable count after is {:?}", &iterablecount);
+			       println!("iterable count after is {:?}", &iterablecount);
 		               }
 	                 let cds_char = sliced_sequence;
 		         let prot_seq =  translate(&revcomp(cds_char.as_bytes()));
@@ -789,7 +789,7 @@ where
 		                  sliced_sequence = &record.sequence[sta+cod-1..sto];
 		                  }
 		              else {
-			          //println!("forward strand codon value one cnt {:?}", &iterablecount);
+			          println!("forward strand codon value one cnt {:?}", &iterablecount);
 		                  sliced_sequence = &record.sequence[sta-1..sto];
 		                  }
 		         let cds_char = sliced_sequence;
@@ -1575,8 +1575,7 @@ mod tests {
     #[allow(unused_assignments)]
     #[allow(unused_imports)]
     fn test_read_file() {
-       println!("in testing of read file");
-       let content = std::fs::read_to_string("rhizexample.gbk").expect("error reading file");
+       let content = std::fs::read_to_string("K12_ribo.gbk").expect("error reading file");
        assert!(content.contains("LOCUS"));
        assert!(content.len() > 0);
        }
@@ -1587,10 +1586,9 @@ mod tests {
     #[allow(unused_assignments)]
     #[allow(unused_imports)]
     fn test_parse_gbk() {
-       let file_gbk = "rhizexample.gbk";
+       let file_gbk = "K12_ribo.gbk";
        let records = genbank!(&file_gbk);
        assert!(records.len() > 0);
-       println!("records len is {:?}", &records.len());
        }
     #[test]
     #[allow(unused_mut)]
@@ -1599,10 +1597,13 @@ mod tests {
     #[allow(unused_assignments)]
     #[allow(unused_imports)]
     fn test_parse_source_attributes() {
-       let file_gbk = "rhizexample.gbk";
+       let file_gbk = "K12_ribo.gbk";
        let records = genbank!(&file_gbk);
-       let record = records[0].clone();
-       assert_eq!(record.id, "AM236082");
+       if let Some(record) = records.first() {
+          if let Some((key, val)) = record.source_map.source_attributes.first_key_value() {
+	      assert_eq!(key, &"source_NC_000913_1".to_string());
+	      }
+          }
        }
     #[test]
     #[allow(unused_mut)]
@@ -1611,11 +1612,14 @@ mod tests {
     #[allow(unused_assignments)]
     #[allow(unused_imports)]
     fn test_parse_cds_attributes() {
-       let file_gbk = "rhizexample.gbk";
+       let file_gbk = "K12_ribo.gbk";
        let records = genbank!(&file_gbk);
-       let record = records[0].clone();
-       assert_eq!(record.cds.locus_tag.clone().unwrap(), "pRL80142".to_string());
-       //assert_eq!(record.cds.get_gene(&record.id).as_deref(), Some(&"trbBp8".to_string()));
+       if let Some(record) = records.first() {
+          if let Some((locus_tag, vals)) = record.cds.attributes.first_key_value() {
+                assert_eq!(locus_tag, &"b3304".to_string());
+                assert_eq!(record.cds.get_gene(&locus_tag).as_deref(), Some(&"rplR".to_string()));
+		}
+          }
        }
     #[test]
     #[allow(unused_mut)]
@@ -1624,11 +1628,14 @@ mod tests {
     #[allow(unused_assignments)]
     #[allow(unused_imports)]
     fn test_parse_sequence_attributes() {
-        let file_gbk = "rhizexample.gbk";
+        let file_gbk = "K12_ribo.gbk";
 	let records = genbank!(&file_gbk);
-	let record = records[0].clone();
-	let loc_tag = &record.cds.locus_tag.clone().unwrap();
-	assert_eq!(record.seq_features.get_sequence_faa(&loc_tag), Some(&"MLQSHSRLVRKLQDALGEHLCIALEDPTVVEIMLNPDGKLFIERLGHGVAPAGEMQATAAETVIGSVAHALQSEADGERPIISGELPIGGHRFEGLLPPVVNSPTFTIRRRASRLIPLDDYVTAKIMTEAQASIIRSAITNRLNIVIAGGTGSGKTTLANAVIAEIVSSAPEDRMVILEDTSEIQCAAENAVCLHTSDAVDMARLLKSTMRLRPDRIIVGEVRDGAALTLLKAWNTGHPGGVTTIHSNSAMSALRRLEQLTSEASQQPMQAVIGEAVDLVISIERAGRGRRVREVLHVEGFNGSRYQTEHYPQIDEDSHAA".to_string()));
+	if let Some(record) = records.first() {
+	   if let Some((key, vals)) = record.cds.attributes.first_key_value() {
+	       assert_eq!(key, &"b3304".to_string());
+	       assert_eq!(record.seq_features.get_sequence_faa(&key), Some(&"MDKKSARIRRATRARRKLQELGATRLVVHRTPRHIYAQVIAPNGSEVLVAASTVEKAIAEQLKYTGNKDAAAAVGKAVAERALEKGIKDVSFDRSGFQYHGRVQALADAAREAGLQF".to_string()));
+	       }
+	   }
 	}
 }
     

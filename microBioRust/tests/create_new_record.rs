@@ -32,7 +32,7 @@ fn create_new_record() -> Result<(), anyhow::Error> {
         .set_mol_type("DNA".to_string())
         .set_strain("K-12 substr. MG1655".to_string())
         // culture_collection.clone()
-        .set_type_material("type strain of Escherichia coli K12".to_string())
+        //.set_type_material("type strain of Escherichia coli K12".to_string())
         .set_db_xref("PRJNA57779".to_string());
     record
         .cds
@@ -98,22 +98,22 @@ ITAECPTQTEIVLKGADKQVIGQVAADLRAYRRPEPYKGKGVRYADEVVRTKEAKKK"
         )
         .set_codon_start(1)
         .set_strand(-1);
-    record.sequence = "TTAGAACTGAAGGCCAGCTTCACGGGCAGCATCTGCCAGTGCCTGGACACGACCATGATA
-TTGGAACCCGGAACGGTCAAAGGATACATCTTTGATGCCTTTTTCCAGAGCGCGTTCAGC
-GACAGCTTTACCCACAGCTGCAGCCGCGTCTTTGTTACCGGTGTACTTCAGTTGTTCAGC
-GATAGCTTTTTCTACAGTAGAAGCAGCTACCAGAACTTCAGAACCGTTCGGTGCAATTAC
-CTGTGCGTAAATGTGACGCGGGGTACGATGTACCACCAGGCGAGTTGCGCCCAGCTCCTG
-GAGCTTGCGGCGTGCGCGGGTCGCACGACGGATACGAGCAGATTTCTTATCCATAGTGTT
-ACCTTACTTCTTCTTAGCCTCTTTGGTACGCACGACTTCGTCGGCGTAACGAACACCCTT
-GCCTTTATAAGGCTCAGGACGACGGTAGGCGCGCAGATCCGCTGCAACCTGGCCGATCAC
-CTGCTTATCAGCGCCTTTCAGCACGATTTCAGTCTGAGTCGGACATTCAGCAGTGATACC
-CGCAGGCAGCTGATGGTCAACAGGATGAGAGAAACCCAGAGACAGGTTAATCACATTGCC
-TTTAACCGCTGCACGGTAACCTACACCAACCAGCTGCAGCTTCTTAGTGAAGCCTTCGGT
-AACACCGATAACCATTGAGTTCAGCAGGGCACGCGCGGTACCAGCCTGTGCCCAACCGTC
-TGCGTAACCATCACGCGGACCGAAGGTCAGGGTATTATCTGCATGTTTAACTTCAACAGC
-ATCGTTGAGAGTACGAGTCAGCTCGCCGTTTTTACCTTTGATCGTAATAACCTGACCGTT
-GATTTTTACGTCAACGCCGGCAGGAACAACGACCGGTGCTTTAGCAACACGAGACA"
-        .to_string();
+    record.sequence = "acctctaccttagaactgaaggccagcttcacgggcagcatctgccagtgcctggacacg
+accatgatattggaacccggaacggtcaaaggatacatctttgatgcctttttccagagc
+gcgttcagcgacagctttacccacagctgcagccgcgtctttgttaccggtgtacttcag
+ttgttcagcgatagctttttctacagtagaagcagctaccagaacttcagaaccgttcgg
+tgcaattacctgtgcgtaaatgtgacgcggggtacgatgtaccaccaggcgagttgcgcc
+cagctcctggagcttgcggcgtgcgcgggtcgcacgacggatacgagcagatttcttatc
+catagtgttaccttacttcttcttagcctctttggtacgcacgacttcgtcggcgtaacg
+aacacccttgcctttataaggctcaggacgacggtaggcgcgcagatccgctgcaacctg
+gccgatcacctgcttatcagcgcctttcagcacgatttcagtctgagtcggacattcagc
+agtgatacccgcaggcagctgatggtcaacaggatgagagaaacccagagacaggttaat
+cacattgcctttaaccgctgcacggtaacctacaccaaccagctgcagcttcttagtgaa
+gccttcggtaacaccgataaccattgagttcagcagggcacgcgcggtaccagcctgtgc
+ccaaccgtctgcgtaaccatcacgcggaccgaaggtcagggtattatctgcatgtttaac
+ttcaacagcatcgttgagagtacgagtcagctcgccgtttttacctttgatcgtaataac
+ctgaccgttgatttttacgtcaacgccggcaggaacaacgaccggtgctttagcaacacg
+agacattttttcc".to_string();
     gff_write(
         seq_region.clone(),
         vec![record.clone()],

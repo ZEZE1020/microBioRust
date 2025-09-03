@@ -4,7 +4,7 @@ use std::fs;
 use std::io;
 #[test]
 pub fn genbank_to_gff() -> io::Result<()> {
-    let file_gbk = fs::File::open("test_output.gbk")?;
+    let file_gbk = fs::File::open("K12_ribo.gbk")?;
     let _prev_start: u32 = 0;
     let mut prev_end: u32 = 0;
     let reader = Reader::new(file_gbk);
