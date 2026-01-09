@@ -17,7 +17,6 @@
     "matrix": {
         "req": {
              "biopython": [""],
-             "microbiorust": [""],
              }
     },
 
