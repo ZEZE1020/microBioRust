@@ -15,7 +15,10 @@
     "pythons": ["3.12"],
     "reuse_existing_environment": true,
     "matrix": {
-        "req": {}
+        "req": {
+             "biopython": [""],
+             "microbiorust": [""],
+             }
     },
 
     // Install using pip + pyproject.toml + maturin
