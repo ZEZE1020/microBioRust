@@ -231,11 +231,11 @@ impl<Kind> Alignment<Kind> {
         let stdout = io::stdout();
         let mut handle = BufWriter::new(stdout.lock());
         let max_id_width = rows.clone().map(|i| self.ids[i].len()).max().unwrap_or(10).min(20); //capped at 20
-        // 1. Iterate through columns in "blocks"
+        //iterate through columns in "blocks"
         for block_start in (cols.start..cols.end).step_by(block_width) {
             let block_end = (block_start + block_width).min(cols.end);
 
-            // 2. For each block, print every requested row
+            //for each block, print every requested row
             for r_idx in rows.clone() {
                 if let Some(id) = self.ids.get(r_idx) {
                     //truncate or pad ID for alignment
