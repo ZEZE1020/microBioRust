@@ -1,5 +1,5 @@
 # microbiorust-py
-   
+    
 **Python bindings for [microBioRust](https://github.com/LCrossman/microBioRust) — a high-performance, modular bioinformatics toolkit written in Rust.**
  
 microBioRust is the core Rust Crate
