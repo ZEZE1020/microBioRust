@@ -66,6 +66,9 @@ jobs:
       # 3. ADD NEW DATA POINT
       - name: Run Benchmarks
         working-directory: microbiorust-py
+        env:
+          MATURIN_PY_BUILD_ARGS: "--release"
+          RUSTFLAGS: "-C target-cpu=native"
         run: asv run HEAD^! --machine "github-runner" --show-stderr
 
       # 4. GENERATE WEBSITE
