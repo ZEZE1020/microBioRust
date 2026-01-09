@@ -28,7 +28,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install dependencies
-        run: pip install asv virtualenv maturin
+        run: pip install asv virtualenv maturin biopython
 
       # 1. GET OLD HISTORY
       - name: Load previous results
@@ -66,6 +66,9 @@ jobs:
       # 3. ADD NEW DATA POINT
       - name: Run Benchmarks
         working-directory: microbiorust-py
+        env:
+          MATURIN_PY_BUILD_ARGS: "--release"
+          RUSTFLAGS: "-C target-cpu=native"
         run: asv run HEAD^! --machine "github-runner" --show-stderr
 
       # 4. GENERATE WEBSITE
