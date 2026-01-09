@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+#![allow(unused_variables)]
 //!  The purpose of microbiorust-py is to allow access to microBioRust
 //!  from Python - so Python InterOperability via pyo3
 //!  This is a collection of pyfunctions to build a PyModule

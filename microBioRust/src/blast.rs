@@ -1,3 +1,7 @@
+#![allow(unused_imports)]
+#![allow(unused_mut)]
+#![allow(unused_variables)]
+#![allow(dead_code)]
 //! async streaming BLAST parsers for the (outfmt 6 and outfmt 5),
 //! gzip-transparent reader, option of --json streaming output
 //!
@@ -90,7 +94,7 @@
 //!    }
 //!
 //!```
-
+#![allow(unused_imports)]
 use anyhow::{Context, Result};
 use async_compression::tokio::bufread::GzipDecoder as AsyncGzDecoder;
 use clap::Parser;

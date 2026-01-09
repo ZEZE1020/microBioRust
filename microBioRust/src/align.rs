@@ -67,59 +67,62 @@ use std::ops::Range;
 use anyhow::{anyhow, Context};
 
 
+#[derive(PartialEq, Debug)]
 pub struct DNA;
+#[derive(PartialEq, Debug)]
 pub struct Protein;
 
+#[derive(PartialEq, Debug)]
 pub struct Alignment<Kind> {
-    data: Vec<u8>,
-    num_rows: usize,
-    num_cols: usize,
-    ids: Vec<String>,
-    id_to_index: HashMap<String, usize>,
-    _marker: std::marker::PhantomData<Kind>,
+    pub sequence_data: Vec<u8>,
+    pub rows: usize,
+    pub cols: usize,
+    pub ids: Vec<String>,
+    pub id_to_index: HashMap<String, usize>,
+    pub _marker: std::marker::PhantomData<Kind>,
 }
 
 impl<Kind> Alignment<Kind> {
-    pub fn new(data: Vec<u8>, num_rows: usize, ids: Vec<String>) -> Self {
-        let num_cols = data.len() / num_rows;
+    pub fn new(sequence_data: Vec<u8>, rows: usize, ids: Vec<String>) -> Self {
+        let cols = sequence_data.len() / rows;
         let id_to_index = ids.iter().enumerate().map(|(i, id)| (id.clone(), i)).collect();
-        Self { data, num_rows, num_cols, ids, id_to_index, _marker: std::marker::PhantomData }
+        Self { sequence_data, rows, cols, ids, id_to_index, _marker: std::marker::PhantomData }
     }
     //to access a row by ID
     pub fn get_row_by_id(&self, id: &str) -> Option<&[u8]> {
         let &idx = self.id_to_index.get(id)?;
-        let start = idx * self.num_cols;
-        Some(&self.data[start..start + self.num_cols])
+        let start = idx * self.cols;
+        Some(&self.sequence_data[start..start + self.cols])
     }
     //to delete a column by start and end
     pub fn remove_columns(&mut self, start: usize, end: usize) {
         let cols_to_remove = end - start;
-        let mut new_data = Vec::with_capacity(self.data.len() - (self.num_rows * cols_to_remove));
+        let mut new_data = Vec::with_capacity(self.sequence_data.len() - (self.rows * cols_to_remove));
 
-        for row in self.data.chunks_exact(self.num_cols) {
+        for row in self.sequence_data.chunks_exact(self.cols) {
             //keeping everything before the slice and everything after
             new_data.extend_from_slice(&row[..start]);
             new_data.extend_from_slice(&row[end..]);
         }
 
-        self.data = new_data;
-        self.num_cols -= cols_to_remove;
+        self.sequence_data = new_data;
+        self.cols -= cols_to_remove;
     }
     //to delete a row by indexed number
     pub fn remove_row_by_number(&mut self, row_idx: usize) {
-        if row_idx >= self.num_rows { return; }
+        if row_idx >= self.rows { return; }
         
-        let start = row_idx * self.num_cols;
-        let end = start + self.num_cols;
+        let start = row_idx * self.cols;
+        let end = start + self.cols;
         
         // Remove from the data vector
-        self.data.drain(start..end);
+        self.sequence_data.drain(start..end);
         
         // Update the ID map and row count
         let id_to_remove = self.ids[row_idx].clone();
         self.id_to_index.remove(&id_to_remove);
         self.ids.remove(row_idx);
-        self.num_rows -= 1;
+        self.rows -= 1;
         
         // Re-index the map (crucial for maintaining O(1) lookup)
         self.reindex_map();
@@ -140,9 +143,8 @@ impl<Kind> Alignment<Kind> {
     pub fn column_counts(&self, col_idx: usize) -> HashMap<u8, usize> {
         let mut counts = HashMap::new();
         
-        for r in 0..self.num_rows {
-            let residue = self.data[r * self.num_cols + col_idx];
-            // The .entry() API is the "Senior" way to do this in Rust
+        for r in 0..self.rows {
+            let residue = self.sequence_data[r * self.cols + col_idx];
             *counts.entry(residue).or_insert(0) += 1;
         }
         
@@ -150,7 +152,7 @@ impl<Kind> Alignment<Kind> {
     }
     //to get a list vector of counters for every column in the alignment
     pub fn all_column_counts(&self) -> Vec<HashMap<u8, usize>> {
-        (0..self.num_cols)
+        (0..self.cols)
             .map(|c| self.column_counts(c))
             .collect()
     }
@@ -158,19 +160,19 @@ impl<Kind> Alignment<Kind> {
     pub fn is_gap_heavy(&self, col_idx: usize, cutoff: f32) -> bool {
         let mut gap_count = 0;
         
-        for r in 0..self.num_rows {
-            if self.data[r * self.num_cols + col_idx] == b'-' {
+        for r in 0..self.rows {
+            if self.sequence_data[r * self.cols + col_idx] == b'-' {
                 gap_count += 1;
             }
         }
         
-        let gap_proportion = gap_count as f32 / self.num_rows as f32;
+        let gap_proportion = gap_count as f32 / self.rows as f32;
         gap_proportion > cutoff
     }
     //to identify columns that exceed the provided gap threshold
     //returns a list of indices to be removed
     pub fn identify_gappy_columns(&self, cutoff: f32) -> Vec<usize> {
-        (0..self.num_cols)
+        (0..self.cols)
             .filter(|&c| self.is_gap_heavy(c, cutoff))
             .collect()
     }
@@ -187,8 +189,8 @@ impl<Kind> Alignment<Kind> {
     //col_range: e.g., Some(0..50) for first 50 columns. None for all.
     pub fn display(&self, row_range: Option<Range<usize>>, col_range: Option<Range<usize>>) -> io::Result<()> {
         // Fallback to full range if None is provided
-        let rows = row_range.unwrap_or(0..self.num_rows);
-        let cols = col_range.unwrap_or(0..self.num_cols);
+        let rows = row_range.unwrap_or(0..self.rows);
+        let cols = col_range.unwrap_or(0..self.cols);
 
         let stdout = io::stdout();
         let mut handle = BufWriter::new(stdout.lock());
@@ -200,14 +202,14 @@ impl<Kind> Alignment<Kind> {
                 writeln!(handle, ">{}", id)?;
 
                 // MATH: Find the start of the row, then offset by the column start
-                let row_start_in_buffer = r_idx * self.num_cols;
+                let row_start_in_buffer = r_idx * self.cols;
                 let start = row_start_in_buffer + cols.start;
                 let end = row_start_in_buffer + cols.end;
 
                 // Ensure we don't slice past the end of the actual row
-                let safe_end = end.min(row_start_in_buffer + self.num_cols);
+                let safe_end = end.min(row_start_in_buffer + self.cols);
                 
-                if let Some(row_slice) = self.data.get(start..safe_end) {
+                if let Some(row_slice) = self.sequence_data.get(start..safe_end) {
                     handle.write_all(row_slice)?;
                     handle.write_all(b"\n")?;
                 }
@@ -223,8 +225,8 @@ impl<Kind> Alignment<Kind> {
         col_range: Option<Range<usize>>,
         block_width: usize // Usually 60 or 80
     ) -> io::Result<()> {
-        let rows = row_range.unwrap_or(0..self.num_rows);
-        let cols = col_range.unwrap_or(0..self.num_cols);
+        let rows = row_range.unwrap_or(0..self.rows);
+        let cols = col_range.unwrap_or(0..self.cols);
 
         let stdout = io::stdout();
         let mut handle = BufWriter::new(stdout.lock());
@@ -243,11 +245,11 @@ impl<Kind> Alignment<Kind> {
                     write!(handle, "{:<width$} ", display_id, width=max_id_width)?;
 
                     //slice the specific chunk for this row
-                    let row_offset = r_idx * self.num_cols;
+                    let row_offset = r_idx * self.cols;
                     let start = row_offset + block_start;
                     let end = row_offset + block_end;
 
-                    if let Some(slice) = self.data.get(start..end) {
+                    if let Some(slice) = self.sequence_data.get(start..end) {
                         handle.write_all(slice)?;
                         writeln!(handle)?;
                     }
@@ -263,22 +265,22 @@ impl<Kind> Alignment<Kind> {
 
     //to subset the alignment if that is needed - by row and column
     pub fn subset(&self, rows: Range<usize>, cols: Range<usize>) -> Self {
-        let new_num_rows = rows.len();
-        let new_num_cols = cols.len();
-        let mut new_data = Vec::with_capacity(new_num_rows * new_num_cols);
-        let mut new_ids = Vec::with_capacity(new_num_rows);
+        let new_rows = rows.len();
+        let new_cols = cols.len();
+        let mut new_data = Vec::with_capacity(new_rows * new_cols);
+        let mut new_ids = Vec::with_capacity(new_rows);
 
         for r in rows {
             // 1. Grab the ID
             new_ids.push(self.ids[r].clone());
 
             // 2. Grab the specific column slice for this row
-            let start = (r * self.num_cols) + cols.start;
-            let end = (r * self.num_cols) + cols.end;
-            new_data.extend_from_slice(&self.data[start..end]);
+            let start = (r * self.cols) + cols.start;
+            let end = (r * self.cols) + cols.end;
+            new_data.extend_from_slice(&self.sequence_data[start..end]);
         }
 
-        Self::new(new_data, new_num_rows, new_ids)
+        Self::new(new_data, new_rows, new_ids)
     }
     //to write part of the alignment to file
     pub fn write_fasta_part<P: AsRef<Path>>(
@@ -288,8 +290,8 @@ impl<Kind> Alignment<Kind> {
         col_range: Option<Range<usize>>,
         wrap: Option<usize>
     ) -> anyhow::Result<()> {
-        let rows = row_range.unwrap_or(0..self.num_rows);
-        let cols = col_range.unwrap_or(0..self.num_cols);
+        let rows = row_range.unwrap_or(0..self.rows);
+        let cols = col_range.unwrap_or(0..self.cols);
         
         let file = File::create(path)?;
         let mut writer = BufWriter::new(file);
@@ -297,9 +299,9 @@ impl<Kind> Alignment<Kind> {
         for r in rows {
             writeln!(writer, ">{}", self.ids[r])?;
             
-            let start = (r * self.num_cols) + cols.start;
-            let end = (r * self.num_cols) + cols.end;
-            let row_chunk = &self.data[start..end];
+            let start = (r * self.cols) + cols.start;
+            let end = (r * self.cols) + cols.end;
+            let row_chunk = &self.sequence_data[start..end];
 
             if let Some(w) = wrap {
                 for chunk in row_chunk.chunks(w) {
@@ -320,13 +322,13 @@ impl<Kind> Alignment<Kind> {
         let file = File::create(path)?;
         let mut writer = BufWriter::new(file);
 
-        for r in 0..self.num_rows {
+        for r in 0..self.rows {
             // Write the Header line
             writeln!(writer, ">{}", self.ids[r])?;
 
-            let start = r * self.num_cols;
-            let end = start + self.num_cols;
-            let row_data = &self.data[start..end];
+            let start = r * self.cols;
+            let end = start + self.cols;
+            let row_data = &self.sequence_data[start..end];
 
             match wrap {
                 Some(width) => {
@@ -353,13 +355,13 @@ impl Alignment<DNA> {
     //calculate GC-content of a specific column (homologous site)
     pub fn gc_content_at_col(&self, col_idx: usize) -> f32 {
         let mut gc_count = 0;
-        for r in 0..self.num_rows {
-            let base = self.data[r * self.num_cols + col_idx].to_ascii_uppercase();
+        for r in 0..self.rows {
+            let base = self.sequence_data[r * self.cols + col_idx].to_ascii_uppercase();
             if base == b'G' || base == b'C' {
                 gc_count += 1;
             }
         }
-        gc_count as f32 / self.num_rows as f32
+        gc_count as f32 / self.rows as f32
     }
     //to determine the most frequent base at a column
     pub fn most_frequent_base(&self, column: &[u8]) -> char {
@@ -378,7 +380,7 @@ impl Alignment<DNA> {
         self.iter_cols()
             .map(|col| {
                 // Find the most frequent base in this column
-                // Senior move: ignore gaps '-' during consensus calculation
+                // ignore gaps '-' during consensus calculation
                 self.most_frequent_base(&col)
             })
             .collect()
@@ -386,7 +388,7 @@ impl Alignment<DNA> {
     //to identify a degenerate site
     pub fn is_degenerate_site(&self, col_idx: usize, threshold: f32) -> bool {
         let counts = self.column_counts(col_idx);
-        let max_freq = *counts.values().max().unwrap_or(&0) as f32 / self.num_rows as f32;
+        let max_freq = *counts.values().max().unwrap_or(&0) as f32 / self.rows as f32;
         max_freq < threshold
     }
 }
@@ -433,15 +435,15 @@ impl<'a, Kind> Iterator for ColumnIterator<'a, Kind> {
     type Item = Vec<u8>; // The residues at this homologous site
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.current_col >= self.alignment.num_cols {
+        if self.current_col >= self.alignment.cols {
             return None;
         }
 
         // Collect residues from each row for the current column
-        let column: Vec<u8> = (0..self.alignment.num_rows)
+        let column: Vec<u8> = (0..self.alignment.rows)
             .map(|r| {
-                let idx = (r * self.alignment.num_cols) + self.current_col;
-                self.alignment.data[idx]
+                let idx = (r * self.alignment.cols) + self.current_col;
+                self.alignment.sequence_data[idx]
             })
             .collect();
 
@@ -576,19 +578,25 @@ mod tests {
     #[test]
     fn test_column_removal() {
         let mut msa = setup_test_dna_msa();
-        let original_cols = msa.num_cols;
+        let original_cols = msa.cols;
     
         // Remove columns 1 and 2 (indices 1..3)
         msa.remove_columns(1, 3);
     
-        assert_eq!(msa.num_cols, original_cols - 2);
+        assert_eq!(msa.cols, original_cols - 2);
     
         // row 0 was: A [T G] C - - A T G C A T G C A T G C
         // should be: A C - - A T G C A T G C A T G C
         let result = msa.get_row_by_id("seq1").unwrap();
         assert_eq!(result, b"AC--ATGCATGCATGC");
    }
-
+   #[test]
+   fn test_consensus_sequence() {
+       let msa = setup_test_dna_msa();
+       let consensus = msa.consensus_sequence();
+       assert_eq!(consensus, "ATGC-AATGCATGCATGC".to_string());
+   }
+   
    #[test]
    fn test_protein_column_entropy() {
        // Column 0: Perfectly conserved (M, M) -> Entropy 0

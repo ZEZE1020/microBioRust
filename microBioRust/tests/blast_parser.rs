@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 use microBioRust::blast::{stream_outfmt6_to_json, AsyncBlastXmlIter};
 use std::io::Cursor;
 use tokio::io::BufReader;
