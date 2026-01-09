@@ -27,7 +27,7 @@ Protein parameters such as:
 - [x]  Counted amino acids & as percentage
 - [x] Aromaticity
 - [ ]  Parsing phylogenetic trees 
-- [ ]  Parsing multiple sequence alignments
+- [x]  Parsing multiple sequence alignments
 - [ ]  Methylation data parsing
 - [x]  pyo3 integration
 
