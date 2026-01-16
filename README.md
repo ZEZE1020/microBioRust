@@ -1,7 +1,7 @@
 <img src="assets/MICROBIO B.svg#gh-light-mode-only" alt="microBioRust logo light mode" width="200">
 <img src="assets/BIO W.png#gh-dark-mode-only" alt="microBioRust logo dark mode" width="200">
 
-[![Docs](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://lcrossman.github.io/microBioRust/)
+[![Docs](https://img.shields.io/badge/docs-mkdocs-blue.svg)](https://lcrossman.github.io/microBioRust-docs/)
 
 ![Crates.io Version](https://img.shields.io/crates/v/microBioRust?style=flat&link=https%3A%2F%2Fcrates.io%2Fcrates%2FmicroBioRust)
 
@@ -29,14 +29,18 @@ Currently there is functionality for:<br>
 
  2. An Embl to GFF and GBK parser
 
- 3. Calculate sequence metrics e.g. hydrophobicity, distance measures
+ 3. Parsing of multiple sequence alignments
 
- 4. A Heatmap plot with wasm and d3.js
+ 4. Parsing BLAST or Diamond/MMSeq2 output formats in XML/Tabular 
+
+ 5. Calculate many sequence metrics e.g. hydrophobicity, distance measures
+
+ 6. A demo Heatmap plot with wasm and d3.js
 
 ````
 
-To see more on how to use have a look at usage [here](docs/usage.md)
+To see more on how to use the project please have a look at usage: [here](docs/usage.md)
 
-To use a specific workspace (at the moment microSeqIO or heatmap) clone the project, cd into the specific directory required and build the project from there
+To use a specific workspace (such as microBioRust, seqmetrics, microbiorust-py or heatmap) clone the project, cd into the specific directory required and build the project from there.
 
 For more background please see <https://LCrossman.github.io/microBioRust_details>
