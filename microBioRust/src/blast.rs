@@ -97,7 +97,6 @@
 #![allow(unused_imports)]
 use anyhow::{Context, Result};
 use async_compression::tokio::bufread::GzipDecoder as AsyncGzDecoder;
-use clap::Parser;
 use quick_xml::events::Event;
 use quick_xml::reader::Reader;
 use quick_xml::escape::unescape;
@@ -173,11 +172,11 @@ pub struct Statistics {
 // first macro: For Option fields (Strings, Option<u32>, etc.)
 macro_rules! read_parse_opt {
     ($self:expr, $tag:expr, $parent_opt:expr, $field:ident, $ok_ty:ty) => {{
-        // 1. Read the content first. This borrows 'self', but the borrow ends
-        // as soon as this statement finishes.
+        //read content first. This borrows 'self', but the borrow ends
+        //as soon as this statement finishes.
         let res = $self.read_tag_content($tag).await;
 
-        // 2. Now 'self' is free again. We can handle the result.
+        //now 'self' is free again and we can handle the result.
         match res {
             Ok(text) => {
                 // 3. Re-borrow only the specific field we want to update.
@@ -566,56 +565,27 @@ where
 }
 
 
+//here we use input in a format such as this in order to capture the required format of XML (5) or Tabular (6) and true or false for Json output
+//see examples for further detail
 
-#[derive(Parser, Debug)]
-#[command(name = "blast-parsers", author, version, about = "async microBioRust BLAST parsers: for outfmt6 (single line tabular) and outfmt5 (xml)")]
-struct Cli {
-    ///Use .gz for gzip-compressed files.
-    #[arg(short, long, default_value = "-")]
-    input: String,
-    /// Format: '6' (tabular) or '5' (xml). If omitted we try to infer by file suffix only
-    #[arg(short, long)]
-    format: Option<String>,
-    /// Output newline-delimited JSON (one JSON object per record/iteration)
-    #[arg(long)]
-    json: bool,
-}
+//#[derive(Parser, Debug)]
+//#[command(name = "blast-parsers", author, version, about = "async microBioRust BLAST parsers: for outfmt6 (single line tabular) and outfmt5 (xml)")]
+//struct Cli {
+//    ///Use .gz for gzip-compressed files.
+//    #[arg(short, long, default_value = "-")]
+//    input: String,
+//    /// Format: '6' (tabular) or '5' (xml). If omitted we try to infer by file suffix only
+//    #[arg(short, long)]
+//    format: Option<String>,
+//    /// Output newline-delimited JSON (one JSON object per record/iteration)
+//    #[arg(long)]
+//    json: bool,
+//}
 
-fn infer_format(path: &str, explicit: &Option<String>) -> String {
+pub fn infer_format(path: &str, explicit: &Option<String>) -> String {
     if let Some(f) = explicit { return f.clone(); }
     if path.ends_with(".xml") || path.ends_with(".xml.gz") { "5".to_string() }
     else { "6".to_string() }
-}
-
-#[tokio::main]
-async fn main() -> Result<()> {
-    let args = Cli::parse();
-    let fmt = infer_format(&args.input, &args.format);
-    let reader_box = open_async_reader(&args.input).await?;
-    if fmt == "6" {
-        stream_outfmt6_to_json(reader_box).await?;
-    } else {
-        // Build AsyncBlastXmlIter from reader_box
-        let iter_reader = reader_box;
-        let mut iter = AsyncBlastXmlIter::from_reader(iter_reader);
-        while let Some(res) = iter.next_iteration().await {
-            match res {
-                Ok(iter_rec) => {
-                    if args.json {
-                        let mut buf = Vec::new();
-                        serde_json::to_writer(&mut buf, &iter_rec)?;
-                        buf.push(b'\n');
-                        tokio::io::stdout().write_all(&buf).await?;
-                    } else {
-                        println!("query {:?} hits {}", iter_rec.query_def, iter_rec.hits.len());
-                    }
-                }
-                Err(e) => eprintln!("xml parse error: {}", e),
-            }
-        }
-    }
-
-    Ok(())
 }
 
 // Unit tests (async if relevant)
