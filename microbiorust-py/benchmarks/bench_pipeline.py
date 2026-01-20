@@ -2,7 +2,7 @@ import os
 import time
 import subprocess
 from Bio import SeqIO
-import microbiorust
+from microbiorust import gbk
 
 class PipelineSuite:
     """
@@ -56,7 +56,7 @@ class PipelineSuite:
         """Routes execution based on the current benchmark parameter."""
         if context == 'interactive':
             if engine == 'rust':
-                return microbiorust.gbk_to_faa_count(self.filepath)
+                return gbk.gbk_to_faa_count(self.filepath)
             else:
                 # Industry standard BioPython streaming approach
                 count = 0
