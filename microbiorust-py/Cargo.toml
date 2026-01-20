@@ -13,19 +13,28 @@ repository = "https://github.com/LCrossman/microBioRust"
 [lints.rust]
 unsafe_code = "forbid"
 
+[target.aarch64-apple-darwin]
+# This 'Wl,-rpath' flag embeds the directory into the binary metadata
+rustflags = ["-C", "link-arg=-Wl,-rpath,/path/from/sysconfig/LIBDIR"]
+
+[target.x86_64-apple-apple-darwin]
+rustflags = ["-C", "link-arg=-Wl,-rpath,/path/from/sysconfig/LIBDIR"]
+
 [lib]
 name = "microbiorust"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies.pyo3]
 version = "0.25.0" 
-features = ["auto-initialize"]
+features = ["auto-initialize", "abi3-py311"]
 
 [features]
 default = []
 extension-module = ["pyo3/extension-module"]
 
 [dependencies]
-microBioRust = { git = "https://github.com/LCrossman/microBioRust", branch = "main"}
+microBioRust = { path = "../microBioRust" }
 microBioRust-seqmetrics = { git = "https://github.com/LCrossman/microBioRust", branch = "main" }
+pythonize = "0.25"
+tokio = { version = "1.49.0", features = ["full"] }
 
