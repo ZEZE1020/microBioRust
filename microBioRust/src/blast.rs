@@ -250,9 +250,9 @@ where
             continue;
         }
         let rec = BlastTabRecord {
-            qseqid: cols.get(0).unwrap().to_string(),
-            sseqid: cols.get(1).unwrap().to_string(),
-            pident: cols.get(2).unwrap().parse().unwrap_or(0.0),
+            qseqid: cols[0].to_string(),
+            sseqid: cols[1].to_string(),
+            pident: cols[2].parse().unwrap_or(0.0),
             length: cols.get(3).and_then(|s| s.parse().ok()).unwrap_or(0),
             mismatch: cols.get(4).and_then(|s| s.parse().ok()),
             gapopen: cols.get(5).and_then(|s| s.parse().ok()),
