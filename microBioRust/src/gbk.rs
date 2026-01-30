@@ -360,7 +360,7 @@ macro_rules! create_builder {
                         .insert(value);
 		    }
 		else {
-		    panic!("Counter key not set"); // Needs better error handling
+		    panic!("Counter key not set - call set_counter() before insert_to(). This is a programming error.");
 		    }
             }
             // function to set each of the alternative fields in the builder

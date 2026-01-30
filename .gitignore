@@ -24,3 +24,8 @@ env/
 venv/
 site/
 static/
+
+# Test output files
+*.gff
+*.gbk
+*.fasta
