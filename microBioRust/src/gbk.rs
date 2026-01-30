@@ -609,15 +609,15 @@ where
                     }
                     if self.line_buffer.contains("/organism") {
                         let org: Vec<&str> = self.line_buffer.split('\"').collect();
-                        organism = org[1].to_string();
+                        organism = org.get(1).unwrap_or(&"").to_string();
                     }
                     if self.line_buffer.contains("/mol_type") {
                         let mol: Vec<&str> = self.line_buffer.split('\"').collect();
-                        mol_type = mol[1].to_string();
+                        mol_type = mol.get(1).unwrap_or(&"").to_string();
                     }
                     if self.line_buffer.contains("/strain") {
                         let stra: Vec<&str> = self.line_buffer.split('\"').collect();
-                        strain = stra[1].to_string();
+                        strain = stra.get(1).unwrap_or(&"").to_string();
                     }
                     //    if self.line_buffer.contains("/culture_collection") {
                     //        let cc: Vec<&str> = self.line_buffer.split('\"').collect();
@@ -625,11 +625,11 @@ where
                     //		}
                     if self.line_buffer.contains("/type_material") {
                         let mat: Vec<&str> = self.line_buffer.split('\"').collect();
-                        type_material = mat[1].to_string();
+                        type_material = mat.get(1).unwrap_or(&"").to_string();
                     }
                     if self.line_buffer.contains("/db_xref") {
                         let db: Vec<&str> = self.line_buffer.split('\"').collect();
-                        db_xref = db[1].to_string();
+                        db_xref = db.get(1).unwrap_or(&"").to_string();
                     }
                 }
             }
@@ -648,10 +648,10 @@ where
                     cds_counter += 1;
                     thestart = cap[1]
                         .parse()
-                        .expect("failed to match and parse numerical start");
+                        .with_context(|| format!("Failed to parse start coordinate from: {}", &cap[1]))?;
                     theend = cap[2]
                         .parse()
-                        .expect("failed to match and parse numerical end");
+                        .with_context(|| format!("Failed to parse end coordinate from: {}", &cap[2]))?;
                     startiter.push(thestart);
                     enditer.push(theend);
                 }

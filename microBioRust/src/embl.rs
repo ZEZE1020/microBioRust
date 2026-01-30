@@ -567,10 +567,10 @@ where
                     cds_counter += 1;
                     thestart = cap[1]
                         .parse()
-                        .expect("failed to match and parse numerical start");
+                        .with_context(|| format!("Failed to parse start coordinate from: {}", &cap[1]))?;
                     theend = cap[2]
                         .parse()
-                        .expect("failed to match and parse numerical end");
+                        .with_context(|| format!("Failed to parse end coordinate from: {}", &cap[2]))?;
                     startiter.push(thestart);
                     enditer.push(theend);
                 }
