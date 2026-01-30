@@ -670,23 +670,27 @@ where
                     self.reader.read_line(&mut self.line_buffer)?;
                     if self.line_buffer.contains("/locus_tag=") {
                         let loctag: Vec<&str> = self.line_buffer.split('\"').collect();
-                        locus_tag = loctag[1].to_string();
+                        locus_tag = loctag.get(1).unwrap_or(&"").to_string();
                         //println!("designated locus tag {:?}", &locus_tag);
                     }
                     if self.line_buffer.contains("/codon_start") {
                         let codstart: Vec<&str> = self.line_buffer.split('=').collect();
-                        let valstart = codstart[1].trim().parse::<u8>()?;
+                        let valstart = codstart.get(1)
+                            .and_then(|s| s.trim().parse::<u8>().ok())
+                            .unwrap_or(1);
                         codon_start = valstart;
                         //println!("designated codon start {:?} {:?}", &codon_start, &locus_tag);
                     }
                     if self.line_buffer.contains("/gene=") {
                         let gen: Vec<&str> = self.line_buffer.split('\"').collect();
-                        gene = gen[1].to_string();
+                        gene = gen.get(1).unwrap_or(&"").to_string();
                         //println!("gene designated {:?} {:?}", &gene, &locus_tag);
                     }
                     if self.line_buffer.contains("/product") {
                         let prod: Vec<&str> = self.line_buffer.split('\"').collect();
-                        product = substitute_odd_punctuation(prod[1].to_string())?;
+                        product = substitute_odd_punctuation(
+                            prod.get(1).unwrap_or(&"").to_string()
+                        )?;
                         //println!("designated product {:?} {:?}", &product, &locus_tag);
                     }
                     if self.line_buffer.starts_with("     CDS")

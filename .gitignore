@@ -26,6 +26,8 @@ site/
 static/
 
 # Test output files
-*.gff
-*.gbk
-*.fasta
+/test_output*.gff
+/test_output*.gbk
+/new_output*.gff
+/new_output*.gbk
+**/cleaned_dna.fasta
