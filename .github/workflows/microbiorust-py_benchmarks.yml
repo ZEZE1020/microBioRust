@@ -83,7 +83,7 @@ jobs:
            MATURIN_PY_BUILD_ARGS: "--release"
            RUSTFLAGS: "-C target-cpu=native"
         run: | 
-           asv run HEAD^! --machine "github-runner" --bench "PipelineSuite.time_process-all" --param-match "engine=rust" --show-stderr
+           asv run HEAD^! --machine "github-runner" --bench "PipelineSuite.time_process-all.*rust.*interactive" --show-stderr
 
       - name: Record Rust Energy use
         uses: green-coding-solutions/eco-ci-energy-estimation@v4
@@ -103,7 +103,7 @@ jobs:
            MATURIN_PY_BUILD_ARGS: "--release"
            RUSTFLAGS: "-C target-cpu=native"
         run: | 
-          asv run HEAD^! --machine "github-runner" --bench "PipelineSuite.time_process-all" --param-match "engine=python" --show-stderr
+          asv run HEAD^! --machine "github-runner" --bench "PipelineSuite.time_process-all.*python.*interactive" --show-stderr
 
       - name: Record Python energy
         uses: green-coding-solutions/eco-ci-energy-estimation@v4
