@@ -28,7 +28,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install dependencies
-        run: pip install asv virtualenv maturin biopython
+        run: pip install asv virtualenv maturin biopython codecarbon
 
       # 1. GET OLD HISTORY
       - name: Load previous results
@@ -70,52 +70,6 @@ jobs:
           MATURIN_PY_BUILD_ARGS: "--release"
           RUSTFLAGS: "-C target-cpu=native"
         run: asv run HEAD^! --machine "github-runner" --show-stderr
-
-        # Measure Rust energy use:
-      - name: Start Rust Energy measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4
-        with:
-           task: start-measurement
-           
-      - name: Run Rust benchmarks for energy
-        working-directory: microbiorust-py
-        env:
-           MATURIN_PY_BUILD_ARGS: "--release"
-           RUSTFLAGS: "-C target-cpu=native"
-        run: | 
-           asv run HEAD^! --machine "github-runner" --bench "PipelineSuite.time_process-all" --param-match "engine=rust" --show-stderr
-
-      - name: Record Rust Energy use
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4
-        with:
-          task: get-measurement
-          output-file: eco-ci-rust.json
-          label: 'Rust Implementation'
-
-      - name: Start Python energy measurement
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4
-        with:
-          task: start-measurement
-
-      - name: Run python benchmarks (for energy estimation)
-        working-directory: microbiorust-py
-        env:
-           MATURIN_PY_BUILD_ARGS: "--release"
-           RUSTFLAGS: "-C target-cpu=native"
-        run: | 
-          asv run HEAD^! --machine "github-runner" --bench "PipelineSuite.time_process-all" --param-match "engine=python" --show-stderr
-
-      - name: Record Python energy
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4
-        with:
-           task: get-measurement
-           output-file: eco-ci-python.json
-           label: 'Python Implementation'
-
-      - name: Display energy comparison
-        uses: green-coding-solutions/eco-ci-energy-estimation@v4
-        with:
-           task: display-results
 
       # 4. GENERATE WEBSITE
       - name: Generate HTML
