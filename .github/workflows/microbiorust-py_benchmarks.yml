@@ -28,7 +28,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Install dependencies
-        run: pip install asv virtualenv maturin biopython
+        run: pip install asv virtualenv maturin biopython codecarbon
 
       # 1. GET OLD HISTORY
       - name: Load previous results
