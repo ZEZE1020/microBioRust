@@ -84,33 +84,24 @@ class PipelineSuite:
         energy_kwh = getattr(tracker, "total_energy", 0)
         # Store energy per engine in Joules
         return (energy_kwh * 3_600_000)/iterations  # Joules/iterations
+    track_energy.unit = "J"
 
     # --- 1. PRIMARY TIME BENCHMARK (ASV automatic) ---
     def time_process_all(self, engine, context):
         """Measures parsing speed (seconds)."""
-        self._run_logic(engine, context)
+        self._run_once(engine, context)
 
     # --- 2. PEAK MEMORY BENCHMARK ---
     def peakmem_process_all(self, engine, context):
         """Measures maximum resident set size (RAM)."""
-        self._run_logic(engine, context)
+        self._run_once(engine, context)
 
     # --- 3. PARSING LATENCY (single-pass) ---
     def track_parsing_latency(self, engine, context):
         """Records single-pass parsing latency (seconds)."""
         start = time.perf_counter()
-        self._run_logic(engine, context)
+        self._run_once(engine, context)
         end = time.perf_counter()
         return end - start
     track_parsing_latency.unit = "s"
-
-    # --- 4. ENERGY BENCHMARK ---
-    def track_energy(self, engine, context):
-        """
-        Returns energy consumed (Joules) for this engine/context using CodeCarbon.
-        ASV can plot Rust vs Python separately.
-        """
-        self._run_logic(engine, context)
-        return self._energy_joules[f"{engine}_{context}"]
-    track_energy.unit = "J"
 
