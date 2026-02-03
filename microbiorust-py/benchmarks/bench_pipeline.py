@@ -42,7 +42,8 @@ class PipelineSuite:
         Routes execution based on engine/context and tracks energy with CodeCarbon.
         Stores last measured energy per engine in self._energy_joules.
         """
-        tracker = OfflineEmissionsTracker(measure_power_secs=1, log_level="CRITICAL", country_iso_code="USA", carbon_intensity=475)
+        os.environ["CODECARBON_CARBON_INTENSITY"] = "475"
+        tracker = OfflineEmissionsTracker(measure_power_secs=1, log_level="CRITICAL", country_iso_code="USA")
         tracker.start()
 
         try:
