@@ -3,7 +3,7 @@ import time
 import subprocess
 from Bio import SeqIO
 from microbiorust import gbk
-from codecarbon import EmissionsTracker
+from codecarbon import OfflineEmissionsTracker
 
 class PipelineSuite:
     """
@@ -42,7 +42,7 @@ class PipelineSuite:
         Routes execution based on engine/context and tracks energy with CodeCarbon.
         Stores last measured energy per engine in self._energy_joules.
         """
-        tracker = EmissionsTracker(measure_power_secs=1, log_level="CRITICAL", offline=True, country_iso_code="USA", constant_carbon_intensity=475)
+        tracker = OfflineEmissionsTracker(measure_power_secs=1, log_level="CRITICAL", country_iso_code="USA", constant_carbon_intensity=475)
         tracker.start()
 
         try:
