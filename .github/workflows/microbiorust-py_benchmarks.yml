@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   benchmark:
-    runs-on: ubuntu-latest
+    runs-on: carbonrunner-4vcpu-ubuntu-latest
     env:
         CODECARBON_OFFLINE: "True"
         CODECARBON_COUNTRY_ISO_CODE: "USA"
