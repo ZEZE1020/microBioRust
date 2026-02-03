@@ -5,6 +5,8 @@ from Bio import SeqIO
 from microbiorust import gbk
 from codecarbon import OfflineEmissionsTracker
 
+#warnings.simplefilter('ignore', BioPythonWarning)
+
 class PipelineSuite:
     """
     Benchmarks for microbiorust-py vs BioPython.
@@ -12,7 +14,7 @@ class PipelineSuite:
       - Parsing Time
       - Peak Memory
       - Latency
-      - Energy Consumption (CodeCarbon)
+      - Energy Consumption (CodeCarbon) using loop iterations
     """
 
     timeout = 300  # 5 minutes per benchmark
@@ -35,55 +37,53 @@ class PipelineSuite:
         # Initialize energy dictionary if not already present
         if not hasattr(self, "_energy_joules"):
             self._energy_joules = {}
+ 
+    def _run_once(self, engine, context):
+        if context == 'interactive':
+            if engine == 'rust':
+                return gbk.gbk_to_faa_count(self.filepath)
+            else:
+                count = 0
+                for record in SeqIO.parse(self.filepath, "genbank"):
+                    for feature in record.features:
+                        if feature.type == "CDS":
+                            _ = feature.extract(record.seq).translate()
+                            count += 1
+                return count
+        else: # pipeline context
+            cli_cmd = self.rust_cli if engine == 'rust' else self.python_cli
+            return subprocess.run(
+                ["python", cli_cmd, self.filepath],
+                capture_output=True, check=True, timeout=self.timeout
+            ).returncode
+
+    # --- RUN REPEATEDLY for codecarbon otherwise the script was finishing before it could be measured ---
+    def _run_repeatedly(self, engine, context, iterations):
+        """Calls the logic many times to make energy measurable."""
+        last_result = None
+        for _ in range(iterations):
+            last_result = self._run_once(engine, context)
+        return last_result
 
     # --- CORE LOGIC WITH CODECARBON ---
-    def _run_logic(self, engine, context):
+    def track_energy(self, engine, context):
         """
         Routes execution based on engine/context and tracks energy with CodeCarbon.
         Stores last measured energy per engine in self._energy_joules.
         """
         os.environ["CODECARBON_CARBON_INTENSITY"] = "475"
-        tracker = OfflineEmissionsTracker(measure_power_secs=1, log_level="CRITICAL", country_iso_code="USA")
+        tracker = OfflineEmissionsTracker(measure_power_secs=0.1, log_level="CRITICAL", country_iso_code="USA")
         tracker.start()
         iterations = 500 if engine == 'rust' else 50
         result = None
-
         try:
-         for _ in range(iterations):
-            # --- DISPATCH ---
-            if context == 'interactive':
-                if engine == 'rust':
-                    result = gbk.gbk_to_faa_count(self.filepath)
-                else:
-                    count = 0
-                    for record in SeqIO.parse(self.filepath, "genbank"):
-                        for feature in record.features:
-                            if feature.type == "CDS":
-                                _ = feature.extract(record.seq).translate()
-                                count += 1
-                    result = count
-
-            elif context == 'pipeline':
-                if engine == 'rust':
-                    result = subprocess.run(
-                        ["python", self.rust_cli, self.filepath],
-                        capture_output=True, check=True, timeout=self.timeout
-                    ).returncode
-                else:
-                    result = subprocess.run(
-                        ["python", self.python_cli, self.filepath],
-                        capture_output=True, check=True, timeout=self.timeout
-                    ).returncode
-            else:
-                raise ValueError(f"unknown context: {context}")
-
+           self._run_repeatedly(engine, context, iterations)
         finally:
             tracker.stop()
-            energy_kwh = getattr(tracker, "total_energy", 0)
-            # Store energy per engine in Joules
-            self._energy_joules[f"{engine}_{context}"] = (energy_kwh * 3_600_000)/iterations  # Joules/iterations
 
-        return result
+        energy_kwh = getattr(tracker, "total_energy", 0)
+        # Store energy per engine in Joules
+        return (energy_kwh * 3_600_000)/iterations  # Joules/iterations
 
     # --- 1. PRIMARY TIME BENCHMARK (ASV automatic) ---
     def time_process_all(self, engine, context):
