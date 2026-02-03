@@ -45,8 +45,11 @@ class PipelineSuite:
         os.environ["CODECARBON_CARBON_INTENSITY"] = "475"
         tracker = OfflineEmissionsTracker(measure_power_secs=1, log_level="CRITICAL", country_iso_code="USA")
         tracker.start()
+        iterations = 500 if engine == 'rust' else 50
+        result = None
 
         try:
+         for _ in range(iterations):
             # --- DISPATCH ---
             if context == 'interactive':
                 if engine == 'rust':
@@ -78,7 +81,7 @@ class PipelineSuite:
             tracker.stop()
             energy_kwh = getattr(tracker, "total_energy", 0)
             # Store energy per engine in Joules
-            self._energy_joules[f"{engine}_{context}"] = energy_kwh * 3_600_000 # Joules
+            self._energy_joules[f"{engine}_{context}"] = (energy_kwh * 3_600_000)/iterations  # Joules/iterations
 
         return result
 
