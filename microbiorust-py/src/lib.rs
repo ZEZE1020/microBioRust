@@ -88,10 +88,32 @@ pub fn gbk_to_faa_count(filename: &str) -> PyResult<usize> {
     }
     Ok(count)
 }
+#[pyfunction]
+pub fn gbk_to_fna(filename: &str) -> PyResult<Vec<String>> {  
+    let records = genbank!(&filename);
+    let mut result = Vec::new();
+    for record in records {
+        result.push(format!(">{}\n{}", &record.id, &record.sequence));
+    }
+    Ok(result)
+}
+#[pyfunction]
+pub fn gbk_to_ffn(filename: &str) -> PyResult<Vec<String>> {  
+    let records = genbank!(&filename);
+    let mut result = Vec::new();
+    for record in records {
+        for (k, _v) in &record.cds.attributes {
+            if let Some(seq) = record.seq_features.get_sequence_ffn(k) {
+                result.push(format!(">{}|{}\n{}", &record.id, &k, seq));
+            }
+        }
+    }
+    Ok(result)
+}
 
 #[pyfunction]
 pub fn embl_to_faa(filename: &str) -> PyResult<Vec<String>> {
-    let records = genbank!(&filename);
+    let records = embl!(&filename);
     let mut result = Vec::new();
     for record in records {
         for (k, _v) in &record.cds.attributes {
@@ -100,6 +122,16 @@ pub fn embl_to_faa(filename: &str) -> PyResult<Vec<String>> {
             }
         }
     }
+    Ok(result)
+}
+
+#[pyfunction]
+pub fn embl_to_fna(filename: &str) -> PyResult<Vec<String>> {
+    let records = embl!(&filename);
+    let mut result = Vec::new();
+    for record in records {
+        result.push(format!(">{}\n{}", &record.id, &record.sequence));
+        }
     Ok(result)
 }
 
@@ -375,7 +407,7 @@ pub fn register_blast(py: Python<'_>, parent: &Bound<'_, PyModule>) -> PyResult<
 #[pyfunction]
 pub fn register_gbk(py: Python<'_>, parent: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(py, "gbk")?;
-    register_functions!(m, gbk_to_faa, gbk_to_faa_count, gbk_to_gff);
+    register_functions!(m, gbk_to_faa, gbk_to_fna, gbk_to_ffn, gbk_to_faa_count, gbk_to_gff);
     parent.add_submodule(&m)?;
     py.import("sys")?
       .getattr("modules")?
@@ -386,9 +418,10 @@ pub fn register_gbk(py: Python<'_>, parent: &Bound<'_, PyModule>) -> PyResult<()
 #[pyfunction]
 pub fn register_embl(py: Python<'_>, parent: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(py, "embl")?;
-    //register_functions!(m, embl_to_gff, embl_to_faa);
+    //register_functions!(m, embl_to_gff, embl_to_faa, embl_to_fna);
     m.add_function(pyo3::wrap_pyfunction!(embl_to_gff, &m)?)?;
     m.add_function(pyo3::wrap_pyfunction!(embl_to_faa, &m)?)?;
+    m.add_function(pyo3::wrap_pyfunction!(embl_to_fna, &m)?)?;
     parent.add_submodule(&m)?;
     py.import("sys")?
       .getattr("modules")?
@@ -424,13 +457,13 @@ mod tests {
  
             // GBK
             let gbk = m.getattr("gbk").expect("gbk submodule missing");
-            for func in &["gbk_to_faa", "gbk_to_faa_count", "gbk_to_gff"] {
+            for func in &["gbk_to_faa", "gbk_to_fna", "gbk_to_faa_count", "gbk_to_gff"] {
                 assert!(gbk.getattr(func).is_ok(), "Function gbk.{} not found", func);
             }
 
             // EMBL
             let embl = m.getattr("embl").expect("embl submodule missing");
-            for func in &["embl_to_faa", "embl_to_gff"] {
+            for func in &["embl_to_faa", "embl_to_fna", "embl_to_gff"] {
                 assert!(embl.getattr(func).is_ok(), "Function embl.{} not found", func);
             }
 
