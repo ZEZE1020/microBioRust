@@ -24,3 +24,10 @@ env/
 venv/
 site/
 static/
+
+# Test output files
+/test_output*.gff
+/test_output*.gbk
+/new_output*.gff
+/new_output*.gbk
+**/cleaned_dna.fasta

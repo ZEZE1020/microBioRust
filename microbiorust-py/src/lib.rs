@@ -199,7 +199,10 @@ pub fn gbk_to_gff(filename: &str, dna: bool) -> PyResult<()> {
     let output_file = format!("{}.gff", &filename);
     if std::path::Path::new(&output_file).exists() {
         println!("deleting existing file {:?}", &output_file);
-        std::fs::remove_file(&output_file).expect("Issue deleting output filename");
+        std::fs::remove_file(&output_file)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(
+                format!("Failed to delete output file {}: {}", &output_file, e)
+            ))?;
     }
     let _ = gff_write(seq_region.clone(), record_vec, &output_file, dna);
     println!("total records processed: {}", read_counter);
@@ -246,7 +249,10 @@ pub fn embl_to_gff(filename: &str, dna: bool) -> PyResult<()> {
     let output_file = format!("{}.gff", &filename);
     if std::path::Path::new(&output_file).exists() {
         println!("deleting existing file {:?}", &output_file);
-        std::fs::remove_file(&output_file).expect("Issue deleting output filename");
+        std::fs::remove_file(&output_file)
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(
+                format!("Failed to delete output file {}: {}", &output_file, e)
+            ))?;
     }
     let _ = embl_gff_write(seq_region.clone(), record_vec, &output_file, dna);
     println!("total records processed: {}", read_counter);
