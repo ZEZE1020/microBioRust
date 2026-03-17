@@ -7,7 +7,7 @@ try:
     from . import microbiorust as _base
     
     #list of submodules importable
-    submodules = ["gbk", "embl", "align", "seqmetrics"]
+    submodules = ["gbk", "embl", "align", "seqmetrics", "blast"]
 
     for sub_name in submodules:
         #get the submodule from the base binary
